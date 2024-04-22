@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { addRiddle } from './addRiddle.js';
 
 const Item = () => {
-    // Состояние для ответов на загадки
-    const [answers, setAnswers] = useState(new Array(6).fill(null));
-    // Список загадок с вариантами ответов
-    const riddles = [
+    useEffect(() => {
+        addRiddle();
+    }, []);
+
+    const [answers, setAnswers] = useState([]);
+    const [riddles, setRiddles] = useState([
         {
             id: 1,
             description: "Я говорю без уст и слышу без ушей. У меня нет тела, но я оживаю от ветра. Что я такое?",
@@ -41,16 +44,14 @@ const Item = () => {
             options: ["Мысль", "Тень", "Вода", "Время"],
             correct: 1
         }
-    ];
+    ]);
 
-    // Функция для обновления ответов
     const handleAnswerChange = (riddleId, selectedOption) => {
         const updatedAnswers = [...answers];
         updatedAnswers[riddleId - 1] = selectedOption;
         setAnswers(updatedAnswers);
     };
 
-    // Проверка ответов и вывод результата
     const checkAnswers = () => {
         let correctAnswers = 0;
         answers.forEach((answer, index) => {
@@ -59,6 +60,103 @@ const Item = () => {
             }
         });
         alert(`Количество правильных ответов: ${correctAnswers}`);
+    };
+
+    const RiddleForm = () => {
+        const [riddleDescription, setRiddleDescription] = useState('');
+        const [option1, setOption1] = useState('');
+        const [option2, setOption2] = useState('');
+        const [option3, setOption3] = useState('');
+        const [option4, setOption4] = useState('');
+        const [correctOption, setCorrectOption] = useState(1);
+
+        const handleRiddleSubmit = (event) => {
+            event.preventDefault();
+            const newRiddle = {
+                id: riddles.length + 1,
+                description: riddleDescription,
+                options: [option1, option2, option3, option4],
+                correct: correctOption - 1
+            };
+            setRiddles([...riddles, newRiddle]);
+        };
+
+        useEffect(() => {
+            const addRiddleButton = document.getElementById('addRiddleButton');
+            addRiddleButton.addEventListener('click', handleAddRiddleButtonClick);
+
+            return () => {
+                addRiddleButton.removeEventListener('click', handleAddRiddleButtonClick);
+            };
+        }, []);
+
+        const handleAddRiddleButtonClick = () => {
+            const formContainer = document.getElementById('formContainer');
+            formContainer.style.display = 'block';
+        };
+
+        return (
+            <div>
+                <div className="overlay" id="overlay"></div>
+                <div className="form-container" id="formContainer">
+                    <h2>Новая загадка</h2>
+                    <form id="riddleForm" onSubmit={handleRiddleSubmit}>
+                        <label htmlFor="riddleDescription">Описание загадки:</label><br />
+                        <input
+                            type="text"
+                            id="riddleDescription"
+                            name="riddleDescription"
+                            value={riddleDescription}
+                            onChange={(e) => setRiddleDescription(e.target.value)}
+                        /><br /><br />
+                        <label htmlFor="option1">Вариант 1: </label>
+                        <input
+                            type="text"
+                            id="option1"
+                            name="option1"
+                            value={option1}
+                            onChange={(e) => setOption1(e.target.value)}
+                        /><br />
+                        <label htmlFor="option2">Вариант 2: </label>
+                        <input
+                            type="text"
+                            id="option2"
+                            name="option2"
+                            value={option2}
+                            onChange={(e) => setOption2(e.target.value)}
+                        /><br />
+                        <label htmlFor="option3">Вариант 3: </label>
+                        <input
+                            type="text"
+                            id="option3"
+                            name="option3"
+                            value={option3}
+                            onChange={(e) => setOption3(e.target.value)}
+                        /><br />
+                        <label htmlFor="option4">Вариант 4: </label>
+                        <input
+                            type="text"
+                            id="option4"
+                            name="option4"
+                            value={option4}
+                            onChange={(e) => setOption4(e.target.value)}
+                        /><br /><br />
+                        <label htmlFor="correctOption">Правильный ответ (от 1 до 4) </label>
+                        <input
+                            type="number"
+                            id="correctOption"
+                            name="correctOption"
+                            value={correctOption}
+                            onChange={(e) => setCorrectOption(parseInt(e.target.value))}
+                            min="1"
+                            max="4"
+                        /><br /><br />
+                        <button type="submit">Добавить</button>
+                    </form>
+                </div>
+                <div id="riddlesList"></div>
+            </div>
+        );
     };
 
     return (
@@ -86,6 +184,8 @@ const Item = () => {
                 </div>
             ))}
             <button onClick={checkAnswers}>Завершить</button>
+            <button id="addRiddleButton">Добавить загадку</button>
+            <RiddleForm />
         </div>
     );
 };
